@@ -1,0 +1,23 @@
+# Dependências do Dashboard SUS - Internações Hospitalares MG
+# Para instalar: pip install -r requirements.txt
+
+# Framework do Dashboard
+streamlit>=1.28.0
+
+# Manipulação de Dados
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl>=3.1.0
+
+# Visualizações Interativas
+plotly>=5.17.0
+
+# Formato de Dados Otimizado
+pyarrow>=21.0.0
+
+# Opcional: Análises Estatísticas Avançadas
+# Descomente as linhas abaixo se quiser adicionar funcionalidades extras:
+# statsmodels>=0.14.0
+# scikit-learn>=1.3.0
+# folium>=0.14.0
+# streamlit-folium>=0.15.0
