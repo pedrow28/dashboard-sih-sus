@@ -2209,8 +2209,8 @@ def main():
     st.sidebar.markdown("""
     <div style='text-align: center; color: #666; font-size: 0.8em;'>
         Dashboard SIH/DATASUS<br>
-        Desenvolvido com ❤️ em Streamlit<br>
-        © 2024
+        Desenvolvido por Pedro William Ribeiro Diniz em Streamlit<br>
+        © 2025
     </div>
     """, unsafe_allow_html=True)
 
