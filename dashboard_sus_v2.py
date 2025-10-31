@@ -604,7 +604,7 @@ def aplicar_filtros(df, filtros):
     
     # Filtro de CID
     if filtros.get('cid'):
-        col_cid = 'DIAG_PRINC' if 'DIAG_PRINC' in df.columns else 'CID_PRINC'
+        col_cid = 'NOME_CID_PRINC' if 'NOME_CID_PRINC' in df.columns else 'CID_PRINC'
         if col_cid in df.columns:
             df_filtrado = df_filtrado[df_filtrado[col_cid].isin(filtros['cid'])]
     
@@ -935,7 +935,7 @@ def painel_epidemiologico(df):
     st.markdown("---")
     
     # Determinar coluna de CID
-    col_cid = 'DIAG_PRINC' if 'DIAG_PRINC' in df.columns else 'CID_PRINC' if 'CID_PRINC' in df.columns else None
+    col_cid = 'NOME_CID_PRINC' if 'NOME_CID_PRINC' in df.columns else 'CID_PRINC' if 'CID_PRINC' in df.columns else None
     
     # Cards epidemiológicos
     
@@ -1663,7 +1663,7 @@ def painel_procedimentos(df):
     st.markdown("*Heatmap mostrando a frequência de combinações entre diagnósticos e procedimentos*")
 
     col_cid_nome = 'NOME_CID_PRINC' if 'NOME_CID_PRINC' in df.columns else None
-    col_cid = 'DIAG_PRINC' if 'DIAG_PRINC' in df.columns else 'CID_PRINC' if 'CID_PRINC' in df.columns else None
+    col_cid = 'NOME_CID_PRINC' if 'NOME_CID_PRINC' in df.columns else 'CID_PRINC' if 'CID_PRINC' in df.columns else None
 
     if col_cid_nome and col_proc_nome:
         # Top 15 CIDs e procedimentos
