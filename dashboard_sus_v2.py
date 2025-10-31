@@ -539,9 +539,9 @@ def criar_filtros_sidebar(df):
         )
     
     # Filtro de CID
-    if 'DIAG_PRINC' in df.columns or 'CID_PRINC' in df.columns:
+    if 'NOME_CID_PRINC' in df.columns or 'CID_PRINC' in df.columns:
         st.sidebar.subheader("🔬 Diagnóstico")
-        col_cid = 'DIAG_PRINC' if 'DIAG_PRINC' in df.columns else 'CID_PRINC'
+        col_cid = 'NOME_CID_PRINC' if 'NOME_CID_PRINC' in df.columns else 'CID_PRINC'
         cids = sorted(df[col_cid].dropna().unique())
         filtros['cid'] = st.sidebar.multiselect(
             "CID Principal",
