@@ -641,6 +641,7 @@ def painel_inicial():
         - 🏥 **Administradores hospitalares**
         - 🔬 **Pesquisadores e epidemiologistas**
         - 👨‍⚕️ **Profissionais de saúde**
+                    
 
         ---
 
@@ -757,53 +758,53 @@ def painel_geral(df):
     st.markdown("---")
     
     # KPIs principais
-    col1, col2, col3, col4, col5 = st.columns(5)
+
     
-    with col1:
-        total_internacoes = len(df)
+    
+    total_internacoes = len(df)
+    st.metric(
+        label="🏥 Total de Internações",
+        value=formatar_numero(total_internacoes)
+    )
+    
+    
+    if 'DIAS_PERM' in df.columns:
+        media_permanencia = df['DIAS_PERM'].mean()
         st.metric(
-            label="🏥 Total de Internações",
-            value=formatar_numero(total_internacoes)
+            label="⏱️ Média de Permanência",
+            value=f"{media_permanencia:.1f} dias"
         )
     
-    with col2:
-        if 'DIAS_PERM' in df.columns:
-            media_permanencia = df['DIAS_PERM'].mean()
-            st.metric(
-                label="⏱️ Média de Permanência",
-                value=f"{media_permanencia:.1f} dias"
-            )
     
-    with col3:
-        if 'MORTE' in df.columns:
-            taxa_mortalidade = (df['MORTE'].sum() / len(df)) * 100
-            st.metric(
-                label="💔 Taxa de Mortalidade",
-                value=formatar_percentual(taxa_mortalidade)
-            )
+    if 'MORTE' in df.columns:
+        taxa_mortalidade = (df['MORTE'].sum() / len(df)) * 100
+        st.metric(
+            label="💔 Taxa de Mortalidade",
+            value=formatar_percentual(taxa_mortalidade)
+        )
     
-    with col4:
-        if 'DIAS_UTI' in df.columns and 'DIAS_PERM' in df.columns:
-            dias_uti = df['DIAS_UTI'].sum()
-            dias_total = df['DIAS_PERM'].sum()
-            taxa_uti = (dias_uti / dias_total * 100) if dias_total > 0 else 0
+    
+    if 'DIAS_UTI' in df.columns and 'DIAS_PERM' in df.columns:
+        dias_uti = df['DIAS_UTI'].sum()
+        dias_total = df['DIAS_PERM'].sum()
+        taxa_uti = (dias_uti / dias_total * 100) if dias_total > 0 else 0
 
-            # Adicionar aviso se não houver UTI
-            help_text = "⚠️ Nenhum registro de UTI no período" if dias_uti == 0 else None
+        # Adicionar aviso se não houver UTI
+        help_text = "⚠️ Nenhum registro de UTI no período" if dias_uti == 0 else None
 
-            st.metric(
-                label="🏥 Taxa de Uso de UTI",
-                value=formatar_percentual(taxa_uti),
-                help=help_text
-            )
+        st.metric(
+            label="🏥 Taxa de Uso de UTI",
+            value=formatar_percentual(taxa_uti),
+            help=help_text
+        )
     
-    with col5:
-        if 'VAL_TOT' in df.columns:
-            custo_medio = df['VAL_TOT'].mean()
-            st.metric(
-                label="💰 Custo Médio por AIH",
-                value=formatar_moeda(custo_medio)
-            )
+    
+    if 'VAL_TOT' in df.columns:
+        custo_medio = df['VAL_TOT'].mean()
+        st.metric(
+            label="💰 Custo Médio por AIH",
+            value=formatar_moeda(custo_medio)
+        )
     
     st.markdown("---")
     
@@ -937,82 +938,82 @@ def painel_epidemiologico(df):
     col_cid = 'DIAG_PRINC' if 'DIAG_PRINC' in df.columns else 'CID_PRINC' if 'CID_PRINC' in df.columns else None
     
     # Cards epidemiológicos
-    col1, col2, col3, col4 = st.columns(4)
     
-    with col1:
-        if 'NOME_CID_PRINC' in df.columns:
-            cid_prevalente = df['NOME_CID_PRINC'].mode()[0] if len(df['NOME_CID_PRINC'].mode()) > 0 else 'N/A'
-            st.metric(
-                label="🦠 Doença Mais Prevalente",
-                value=str(cid_prevalente)
-            )
-        elif col_cid and col_cid in df.columns:
-            cid_prevalente = df[col_cid].mode()[0] if len(df[col_cid].mode()) > 0 else 'N/A'
-            st.metric(
-                label="🦠 CID Mais Prevalente",
-                value=str(cid_prevalente)
-            )
+    
 
-    with col2:
-        # Usar CID principal dos casos que resultaram em morte
-        if 'NOME_CID_PRINC' in df.columns and 'MORTE' in df.columns:
-            df_obitos = df[df['MORTE'] == 1]
-            if len(df_obitos) > 0:
-                cid_morte = df_obitos['NOME_CID_PRINC'].mode()
-                cid_morte_valor = cid_morte[0] if len(cid_morte) > 0 else 'N/A'
-                st.metric(
-                    label="☠️ CID Mais Freq. em Óbitos",
-                    value=str(cid_morte_valor),
-                    help="Diagnóstico principal mais frequente nas internações que resultaram em óbito"
-                )
-            else:
-                st.metric(
-                    label="☠️ CID Mais Freq. em Óbitos",
-                    value="Sem óbitos"
-                )
-        elif col_cid and col_cid in df.columns and 'MORTE' in df.columns:
-            df_obitos = df[df['MORTE'] == 1]
-            if len(df_obitos) > 0:
-                cid_morte = df_obitos[col_cid].mode()
-                cid_morte_valor = cid_morte[0] if len(cid_morte) > 0 else 'N/A'
-                st.metric(
-                    label="☠️ CID Mais Freq. em Óbitos",
-                    value=str(cid_morte_valor),
-                    help="Diagnóstico principal mais frequente nas internações que resultaram em óbito"
-                )
-            else:
-                st.metric(
-                    label="☠️ CID Mais Freq. em Óbitos",
-                    value="Sem óbitos"
-                )
+    if 'NOME_CID_PRINC' in df.columns:
+        cid_prevalente = df['NOME_CID_PRINC'].mode()[0] if len(df['NOME_CID_PRINC'].mode()) > 0 else 'N/A'
+        st.metric(
+            label="🦠 Doença Mais Prevalente",
+            value=str(cid_prevalente)
+        )
+    elif col_cid and col_cid in df.columns:
+        cid_prevalente = df[col_cid].mode()[0] if len(df[col_cid].mode()) > 0 else 'N/A'
+        st.metric(
+            label="🦠 CID Mais Prevalente",
+            value=str(cid_prevalente)
+        )
+
+    
+    # Usar CID principal dos casos que resultaram em morte
+    if 'NOME_CID_PRINC' in df.columns and 'MORTE' in df.columns:
+        df_obitos = df[df['MORTE'] == 1]
+        if len(df_obitos) > 0:
+            cid_morte = df_obitos['NOME_CID_PRINC'].mode()
+            cid_morte_valor = cid_morte[0] if len(cid_morte) > 0 else 'N/A'
+            st.metric(
+                label="☠️ CID Mais Freq. em Óbitos",
+                value=str(cid_morte_valor),
+                help="Diagnóstico principal mais frequente nas internações que resultaram em óbito"
+            )
         else:
             st.metric(
                 label="☠️ CID Mais Freq. em Óbitos",
-                value="N/A",
-                help="Dados de óbitos não disponíveis"
+                value="Sem óbitos"
             )
-    
-    with col3:
-        if 'FAIXA_ETARIA' in df.columns:
-            faixa_modal = df['FAIXA_ETARIA'].mode()[0] if len(df['FAIXA_ETARIA'].mode()) > 0 else 'N/A'
+    elif col_cid and col_cid in df.columns and 'MORTE' in df.columns:
+        df_obitos = df[df['MORTE'] == 1]
+        if len(df_obitos) > 0:
+            cid_morte = df_obitos[col_cid].mode()
+            cid_morte_valor = cid_morte[0] if len(cid_morte) > 0 else 'N/A'
             st.metric(
-                label="👤 Faixa Etária Modal",
-                value=str(faixa_modal)
-            )
-    
-    with col4:
-        if 'CID_SECUN' in df.columns and df['CID_SECUN'].notna().sum() > 0:
-            perc_comorbidade = (df['CID_SECUN'].notna().sum() / len(df) * 100)
-            st.metric(
-                label="🔗 % com Comorbidades",
-                value=formatar_percentual(perc_comorbidade)
+                label="☠️ CID Mais Freq. em Óbitos",
+                value=str(cid_morte_valor),
+                help="Diagnóstico principal mais frequente nas internações que resultaram em óbito"
             )
         else:
             st.metric(
-                label="🔗 % com Comorbidades",
-                value="N/A",
-                help="CID secundário não disponível na base de dados"
+                label="☠️ CID Mais Freq. em Óbitos",
+                value="Sem óbitos"
             )
+    else:
+        st.metric(
+            label="☠️ CID Mais Freq. em Óbitos",
+            value="N/A",
+            help="Dados de óbitos não disponíveis"
+        )
+    
+    
+    if 'FAIXA_ETARIA' in df.columns:
+        faixa_modal = df['FAIXA_ETARIA'].mode()[0] if len(df['FAIXA_ETARIA'].mode()) > 0 else 'N/A'
+        st.metric(
+            label="👤 Faixa Etária Modal",
+            value=str(faixa_modal)
+        )
+    
+    
+    if 'CID_SECUN' in df.columns and df['CID_SECUN'].notna().sum() > 0:
+        perc_comorbidade = (df['CID_SECUN'].notna().sum() / len(df) * 100)
+        st.metric(
+            label="🔗 % com Comorbidades",
+            value=formatar_percentual(perc_comorbidade)
+        )
+    else:
+        st.metric(
+            label="🔗 % com Comorbidades",
+            value="N/A",
+            help="CID secundário não disponível na base de dados"
+        )
     
     st.markdown("---")
     
@@ -1547,42 +1548,39 @@ def painel_procedimentos(df):
         st.warning("Coluna de procedimento não encontrada nos dados")
         return
 
-    # Cards de procedimentos
-    col1, col2, col3, col4 = st.columns(4)
 
-    with col1:
-        col_to_use = col_proc_nome if col_proc_nome else col_proc_real
-        total_proc_distintos = df[col_to_use].nunique()
-        st.metric(
-            label="🔢 Procedimentos Distintos",
-            value=formatar_numero(total_proc_distintos)
-        )
+    col_to_use = col_proc_nome if col_proc_nome else col_proc_real
+    total_proc_distintos = df[col_to_use].nunique()
+    st.metric(
+        label="🔢 Procedimentos Distintos",
+        value=formatar_numero(total_proc_distintos)
+    )
 
-    with col2:
-        col_to_use = col_proc_nome if col_proc_nome else col_proc_real
-        proc_mais_comum = df[col_to_use].mode()[0] if len(df[col_to_use].mode()) > 0 else 'N/A'
-        st.metric(
-            label="⚕️ Procedimento Mais Realizado",
-            value=str(proc_mais_comum)
-        )
-
-    with col3:
-        if 'VAL_TOT' in df.columns:
-            col_to_use = col_proc_nome if col_proc_nome else col_proc_real
-            df_proc_valor = df.groupby(col_to_use)['VAL_TOT'].mean()
-            proc_mais_caro = df_proc_valor.idxmax() if len(df_proc_valor) > 0 else 'N/A'
-            st.metric(
-                label="💎 Procedimento Mais Caro",
-                value=str(proc_mais_caro)
-            )
     
-    with col4:
-        if 'VAL_TOT' in df.columns:
-            gasto_total = df['VAL_TOT'].sum()
-            st.metric(
-                label="💰 Gasto Total",
-                value=formatar_moeda(gasto_total)
-            )
+    col_to_use = col_proc_nome if col_proc_nome else col_proc_real
+    proc_mais_comum = df[col_to_use].mode()[0] if len(df[col_to_use].mode()) > 0 else 'N/A'
+    st.metric(
+        label="⚕️ Procedimento Mais Realizado",
+        value=str(proc_mais_comum)
+    )
+
+    
+    if 'VAL_TOT' in df.columns:
+        col_to_use = col_proc_nome if col_proc_nome else col_proc_real
+        df_proc_valor = df.groupby(col_to_use)['VAL_TOT'].mean()
+        proc_mais_caro = df_proc_valor.idxmax() if len(df_proc_valor) > 0 else 'N/A'
+        st.metric(
+            label="💎 Procedimento Mais Caro",
+            value=str(proc_mais_caro)
+        )
+    
+    
+    if 'VAL_TOT' in df.columns:
+        gasto_total = df['VAL_TOT'].sum()
+        st.metric(
+            label="💰 Gasto Total",
+            value=formatar_moeda(gasto_total)
+        )
     
     st.markdown("---")
     
@@ -1714,43 +1712,15 @@ def painel_populacional(df):
         st.warning("Coluna RACA_COR não disponível nos dados")
         return
     
-    # Cards de equidade
-    col1, col2, col3, col4 = st.columns(4)
     
-    with col1:
-        raca_modal = df['RACA_COR'].mode()[0] if len(df['RACA_COR'].mode()) > 0 else 'N/A'
-        perc_modal = (df['RACA_COR'] == raca_modal).sum() / len(df) * 100
-        st.metric(
-            label="👤 Raça/Cor Modal",
-            value=f"{raca_modal} ({perc_modal:.1f}%)"
-        )
     
-    with col2:
-        perc_ignorada = (df['RACA_COR'] == 'Ignorada').sum() / len(df) * 100
-        st.metric(
-            label="❓ % Raça/Cor Ignorada",
-            value=formatar_percentual(perc_ignorada)
-        )
-    
-    with col3:
-        if 'MORTE' in df.columns:
-            df_mort_raca = df.groupby('RACA_COR').agg({
-                'MORTE': ['sum', 'count']
-            })
-            df_mort_raca['taxa'] = (df_mort_raca[('MORTE', 'sum')] / df_mort_raca[('MORTE', 'count')] * 100)
-            maior_disp = df_mort_raca['taxa'].max() - df_mort_raca['taxa'].min()
-            st.metric(
-                label="⚖️ Maior Disparidade Mortalidade",
-                value=f"{maior_disp:.1f} p.p."
-            )
-    
-    with col4:
-        perc_indigena = (df['RACA_COR'] == 'Indígena').sum() / len(df) * 100
-        st.metric(
-            label="🪶 % Indígenas",
-            value=formatar_percentual(perc_indigena)
-        )
-    
+    raca_modal = df['RACA_COR'].mode()[0] if len(df['RACA_COR'].mode()) > 0 else 'N/A'
+    perc_modal = (df['RACA_COR'] == raca_modal).sum() / len(df) * 100
+    st.metric(
+        label="👤 Raça/Cor Modal",
+        value=f"{raca_modal} ({perc_modal:.1f}%)"
+    )
+
     st.markdown("---")
     
     # Distribuição por raça/cor
@@ -2076,6 +2046,8 @@ def painel_metodologia():
     O SIH/DATASUS é o sistema responsável pelo processamento das Autorizações de Internação Hospitalar (AIH) 
     no âmbito do Sistema Único de Saúde. Contém informações sobre internações hospitalares realizadas em 
     estabelecimentos públicos e privados conveniados ao SUS em todo o Brasil.
+                
+    As informações de gastos aqui apresentadas dizem respeito ao valor total dos procedimentos da SIGTAP.
     
     ---
     
