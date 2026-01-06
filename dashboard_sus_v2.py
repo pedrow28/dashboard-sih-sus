@@ -426,6 +426,34 @@ def formatar_moeda(valor):
     """Formata valor monetário em R$"""
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+def render_cta_banner():
+    """Banner de conversão - CTA nativo Streamlit"""
+    
+    st.success("""
+    **🎯 Gostou dessa análise?** Transforme os dados do seu hospital em estratégia de captação científica. 
+    Metodologia validada • Hospitais captaram R$500k a R$3M
+    """)
+    
+    col1, col2, col_espaco = st.columns([1, 1, 2])
+    
+    with col1:
+        st.link_button(
+            "💼 Conversar no LinkedIn",
+            "https://www.linkedin.com/in/pedrowilliamribeiro",
+            use_container_width=True
+        )
+    
+    with col2:
+        st.link_button(
+            "✉️ Enviar e-mail",
+            "mailto:pedrowilliamrd@gmail.com?subject=Interesse%20Dashboard%20THAUMA",
+            use_container_width=True
+        )
+
+# ==============================================================================
+# ⬆️ ATÉ AQUI
+# ==============================================================================
+
 def formatar_percentual(valor):
     """Formata percentual com 1 casa decimal"""
     return f"{valor:.1f}%"
@@ -2167,6 +2195,8 @@ def main():
         </p>
     </div>
     """, unsafe_allow_html=True)
+
+    render_cta_banner()
 
     # Navegação por tabs
     tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
