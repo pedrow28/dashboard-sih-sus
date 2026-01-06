@@ -827,7 +827,12 @@ def painel_geral(df):
     
     
     if 'VAL_TOT' in df.columns:
-        custo_medio = df['VAL_TOT'].mean()
+        custo_medio = (
+    df.dropna(subset=['VAL_TOT'])
+      .groupby('N_AIH')['VAL_TOT']
+      .first()
+      .mean()
+)
         st.metric(
             label="💰 Custo Médio por AIH",
             value=formatar_moeda(custo_medio)
