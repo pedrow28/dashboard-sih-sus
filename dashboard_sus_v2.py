@@ -431,7 +431,6 @@ def render_cta_banner():
     
     st.success("""
     **🎯 Gostou dessa análise?** Transforme os dados do seu hospital em estratégia de captação científica. 
-    Metodologia validada • Hospitais captaram R$500k a R$3M
     """)
     
     col1, col2, col_espaco = st.columns([1, 1, 2])
@@ -439,7 +438,7 @@ def render_cta_banner():
     with col1:
         st.link_button(
             "💼 Conversar no LinkedIn",
-            "https://www.linkedin.com/in/pedrowilliamribeiro",
+            "https://www.linkedin.com/in/pedrowilliamrd/",
             use_container_width=True
         )
     
