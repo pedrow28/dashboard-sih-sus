@@ -258,6 +258,7 @@ def carregar_dados():
             'UF_Residencia': 'UF_ZI',
             'Municipio_Residencia': 'MUNIC_RES',
             'Nome_Municipio_Residencia': 'NOME_MUNIC_RES',
+            'Numero_AIH' : 'N_AIH',
             'Municipio_Atendimento': 'MUNIC_MOV',
             'Nome_Municipio_Atendimento': 'NOME_MUNIC_MOV',
             'Codigo_CNES': 'CNES',
