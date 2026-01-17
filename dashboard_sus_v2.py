@@ -831,7 +831,7 @@ def painel_geral(df):
         custo_medio = (
     df.dropna(subset=['VAL_TOT'])
       .groupby('N_AIH')['VAL_TOT']
-      .first()
+      .sum()
       .mean()
 )
         st.metric(
