@@ -1,0 +1,340 @@
+
+title: "Internações Hospitalares em MG (Jan-Jul 2025)"
+author: "SUSBot"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: bootstrap
+    code_folding: hide
+    df_print: paged
+    fig_width: 10
+    fig_height: 6
+---
+
+## Introdução e Objetivos
+
+Este relatório apresenta os dados de internações hospitalares do SUS em Minas Gerais, no período de janeiro a julho de 2025. O objetivo é preparar uma base consolidada, enriquecida com informações auxiliares (municípios, procedimentos, CNES), pronta para análises epidemiológicas.
+
+## Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center"
+)
+
+library(microdatasus)
+library(tidyverse)
+library(DT)
+library(plotly)
+library(knitr)
+library(kableExtra)
+library(writexl)
+```
+
+## Importação e Processamento dos Dados SIH
+
+```{r import-sih}
+# Baixar dados de internações (SIH-RD) para MG, de jan a jul de 2025
+dados_raw <- fetch_datasus(
+  year_start = 2025,
+  year_end = 2025,
+  month_start = 1,
+  month_end = 7,
+  uf = "MG",
+  information_system = "SIH-RD"
+)
+
+# Processar dados com nomes legíveis
+internacoes_2025 <- process_sih(
+  data = dados_raw,
+  municipality_data = FALSE # vamos unir manualmente depois
+)
+
+
+
+
+
+```
+
+```{r}
+internacoes_2025 <- dados_raew
+```
+
+
+## Seleção e Renomeação das Colunas
+
+```{r renomear}
+df_legivel <- internacoes_2025 %>%
+  select(
+    UF_ZI,
+    ESPEC,
+    CGC_HOSP,
+    N_AIH,
+    MUNIC_RES,
+    NASC,
+    SEXO,
+    UTI_MES_TO,
+    PROC_SOLIC,
+    PROC_REA,
+    VAL_SH,
+    VAL_SP,
+    VAL_TOT,
+    DT_INTER,
+    DT_SAIDA,
+    DIAG_PRINC,
+    DIAG_SECUN,
+    NAT_JUR,
+    MUNIC_MOV,
+    IDADE,
+    DIAS_PERM,
+    MORTE,
+    CID_NOTIF,
+    CBOR,
+    CNES,
+    CNPJ_MANT,
+    CID_ASSO,
+    CID_MORTE,
+    COMPLEX,
+    RACA_COR,
+    ETNIA
+  ) %>%
+  rename(
+    UF_Residencia = UF_ZI,
+    Especialidade = ESPEC,
+    CGC_Hospital = CGC_HOSP,
+    Numero_AIH = N_AIH,
+    Municipio_Residencia = MUNIC_RES,
+    Data_Nascimento = NASC,
+    Sexo = SEXO,
+    Dias_UTI_Mes = UTI_MES_TO,
+    Procedimento_Solicitado = PROC_SOLIC,
+    Procedimento_Realizado = PROC_REA,
+    Valor_SH = VAL_SH,
+    Valor_SP = VAL_SP,
+    Valor_Total = VAL_TOT,
+    Data_Internacao = DT_INTER,
+    Data_Saida = DT_SAIDA,
+    Diagnostico_Principal = DIAG_PRINC,
+    Diagnostico_Secundario = DIAG_SECUN,
+    Natureza_Juridica = NAT_JUR,
+    Municipio_Atendimento = MUNIC_MOV,
+    Idade = IDADE,
+    Dias_Permanencia = DIAS_PERM,
+    Morte = MORTE,
+    CID_Notificacao = CID_NOTIF,
+    Codigo_Bronze = CBOR,
+    Codigo_CNES = CNES,
+    CNPJ_Mantenedora = CNPJ_MANT,
+    CID_Associado = CID_ASSO,
+    CID_Morte = CID_MORTE,
+    Complexidade = COMPLEX,
+    Raca_Cor = RACA_COR,
+    Etnia = ETNIA
+  )
+```
+
+## Join com Tabelas Auxiliares
+
+```{r joins}
+# Tabela de municípios (já disponível no pacote)
+data("tabMun")
+
+tabMun <- tabMun %>% mutate(munResCod = as.character(munResCod))
+
+df_legivel <- df_legivel %>%
+  left_join(tabMun, by = c("Municipio_Residencia" = "munResCod")) %>%
+  rename(Nome_Municipio_Residencia = munResNome)
+
+df_legivel <- df_legivel %>%
+  left_join(tabMun, by = c("Municipio_Atendimento" = "munResCod")) %>%
+  rename(Nome_Municipio_Atendimento = munResNome)
+
+# Tabela SIGTAP (procedimentos)
+#sigtap <- fetch_sigtab()
+
+df_legivel <- df_legivel %>%
+  left_join(sigtap, by = c("Procedimento_Realizado" = "COD")) %>%
+  rename(Nome_Procedimento_Realizado = nome_proced)
+
+df_legivel <- df_legivel %>%
+  left_join(sigtap, by = c("Procedimento_Solicitado" = "COD")) %>%
+  rename(Nome_Procedimento_Solicitado = nome_proced)
+
+# Tabela CNES (estabelecimentos de saúde)
+#cnes_info <- fetch_cadger()
+
+df_legivel <- df_legivel %>%
+  left_join(cnes, by = c("Codigo_CNES" = "CNES")) %>%
+  rename(Nome_Estabelecimento = FANTASIA)
+
+df_legivel <- df_legivel %>% rename(CBO = Codigo_Bronze)
+
+```
+
+```{r}
+df_final <- df_legivel %>%
+select(
+UF_Residencia,
+Municipio_Residencia,
+Municipio_Atendimento,
+#Nome_Municipio_Residencia,
+#Nome_Municipio_Atendimento,
+Codigo_CNES,
+Nome_Estabelecimento,
+CGC_Hospital,
+CNPJ_Mantenedora,
+Numero_AIH,
+Data_Internacao,
+Data_Saida,
+Dias_Permanencia,
+Dias_UTI_Mes,
+Especialidade,
+Natureza_Juridica,
+Complexidade,
+Procedimento_Solicitado,
+Nome_Procedimento_Solicitado,
+Procedimento_Realizado,
+Nome_Procedimento_Realizado,
+Valor_SH,
+Valor_SP,
+Valor_Total,
+Diagnostico_Principal,
+Diagnostico_Secundario,
+CID_Associado,
+CID_Notificacao,
+CID_Morte,
+Sexo,
+Idade,
+Data_Nascimento,
+Raca_Cor,
+Etnia,
+Morte,
+CBO
+)
+
+
+write.csv(df_final, "dados_preliminares.csv")
+```
+
+```{r}
+## CIDS
+
+CID_10_SUBCATEGORIAS <- read_csv2("CID-10-SUBCATEGORIAS.CSV", escape_double = FALSE, trim_ws = TRUE, fileEncoding = "UTF-8")
+
+
+df_final <- df_final %>% left_join(CID_10_SUBCATEGORIAS, by = c("Diagnostico_Principal" = "SUBCAT")) %>%
+select(
+  UF_Residencia,
+  Nome_Municipio_Residencia,
+  Nome_Municipio_Atendimento,
+  Codigo_CNES,
+  Nome_Estabelecimento,
+  CGC_Hospital,
+  CNPJ_Mantenedora,
+  Numero_AIH,
+  Data_Internacao,
+  Data_Saida,
+  Dias_Permanencia,
+  Dias_UTI_Mes,
+  Especialidade,
+  Natureza_Juridica,
+  Complexidade,
+  Procedimento_Solicitado,
+  Nome_Procedimento_Solicitado,
+  Procedimento_Realizado,
+  Nome_Procedimento_Realizado,
+  Valor_SH,
+  Valor_SP,
+  Valor_Total,
+  Diagnostico_Principal,
+  Nome_Diagnostico_Principal = DESCRICAO.x,
+  Diagnostico_Secundario,
+  CID_Associado,
+  CID_Notificacao,
+  CID_Morte,
+  Sexo,
+  Idade,
+  Data_Nascimento,
+  Raca_Cor,
+  Etnia,
+  Morte
+) 
+
+
+```
+
+```{r}
+
+df_final <- df_final %>%
+  mutate(
+    Complexidade_Nivel = case_when(
+      Complexidade == "01" ~ "Baixa",
+      Complexidade == "02" ~ "Média",
+      Complexidade == "03" ~ "Alta",
+      TRUE ~ "Não definido"
+    ),
+    Raca_Cor_Nome = case_when(
+      Raca_Cor == "01" ~ "Branca",
+      Raca_Cor == "02" ~ "Preta",
+      Raca_Cor == "03" ~ "Parda",
+      Raca_Cor == "04" ~ "Amarela",
+      Raca_Cor == "05" ~ "Indígena",
+      Raca_Cor == "09" ~ "Ignorado",
+      TRUE ~ "Não definido"
+    )
+  )
+
+df_final_utf8 <- df_final %>%
+  mutate(across(where(is.character), ~ enc2utf8(.)))
+
+library(dplyr)
+
+df_corrigido <- df_final %>%
+  mutate(
+    across(
+      .cols = where(is.character),          # Seleciona todas as colunas do tipo character
+      .fns = ~ iconv(., from = "ISO-8859-1", to = "UTF-8")  # Converte de ISO-8859-1 para UTF-8
+    )
+  )
+
+
+Encoding(df_final$Nome_Municipio_Residencia) <- "UTF-8"
+
+
+
+write_xlsx(df_final, "dados_dashboard_sus.xlsx")
+
+write.csv(df_final, "dados_dashboard_sus.csv")
+
+write.csv(df_final_utf8, file = "internacoes_MG_2025_corrigido.csv", row.names = FALSE, fileEncoding = "UTF-8")
+
+write.csv(df_final_utf8 %>% head(1000), file = "amostra.csv", row.names = FALSE, fileEncoding = "UTF-8")
+
+
+```
+
+
+## Conclusão
+
+O presente relatório preparou uma base de dados com internações em Minas Gerais, com variáveis já limpas, nomeadas e enriquecidas com dados auxiliares. Este dataset está pronto para análises descritivas, temporais e espaciais, conforme interesse epidemiológico.
+
+---
+```{r}
+
+iconv(df_final$Nome_Municipio_Residencia, from = "UTF-8", to = "UTF-8")
+
+```
+
+```{r}
+
+df_final %>% filter(Codigo_CNES == "3698548") %>% pull(Raca_Cor) %>% table()
+
+
+
+```
+

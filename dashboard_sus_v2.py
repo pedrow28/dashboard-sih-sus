@@ -318,6 +318,11 @@ def carregar_dados():
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
 
+        # Converter valores monetários de centavos para reais
+        # Os dados do DATASUS vêm em centavos (multiplicados por 100)
+        if 'VAL_TOT' in df.columns:
+            df['VAL_TOT'] = df['VAL_TOT'] / 100
+
         # Trata coluna MORTE (converter de texto "Sim"/"Não" para 0/1)
         if 'MORTE_TXT' in df.columns:
             df['MORTE'] = df['MORTE_TXT'].map({'Não': 0, 'Sim': 1}).fillna(0).astype(int)
